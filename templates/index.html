@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stock Chatbot</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --card-bg: rgba(30, 30, 30, 0.8);
+      --border-color: #00ff88;
+      --input-bg: #1e1e1e;
+      --button-bg: #0f9d58;
+      --button-hover-bg: #0c7c45;
+      --upload-button-bg: #ff9800;
+      --upload-button-hover-bg: #e68a00;
+      --info-box-bg: rgba(0, 255, 0, 0.05);
+      --glow: 0 0 10px rgba(0, 255, 0, 0.5);
+    }
+
+    body.light-mode {
+      --bg-color: #ffffff;
+      --text-color: #000000;
+      --card-bg: #f0f0f0;
+      --border-color: #2196F3;
+      --input-bg: #ffffff;
+      --button-bg: #2196F3;
+      --button-hover-bg: #0b7dda;
+      --upload-button-bg: #ff9800;
+      --upload-button-hover-bg: #e68a00;
+      --info-box-bg: rgba(33, 150, 243, 0.05);
+      --glow: 0 0 10px rgba(33, 150, 243, 0.5);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      transition: all 0.4s ease;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 30px 0 10px;
+      font-size: 52px;
+      font-weight: bold;
+      background: linear-gradient(to right, #ff0000, #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+    }
+
+    #search-bar {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #symbol {
+      width: 400px;
+      padding: 12px 20px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: 1px solid #555;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    .go-button, .speech-button {
+      background-color: var(--button-bg);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .go-button:hover, .speech-button:hover {
+      background-color: var(--button-hover-bg);
+    }
+
+    .info-box {
+      max-width: 600px;
+      margin: 30px auto 0;
+      padding: 15px 25px;
+      border-radius: 15px;
+      background-color: var(--info-box-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      font-size: 16px;
+      text-align: center;
+      box-shadow: var(--glow);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-left: 5px solid var(--button-bg);
+      margin-bottom: 20px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .chart-img {
+      display: block;
+      margin: 0 auto;
+      max-width: 100%;
+      border-radius: 10px;
+    }
+
+    .news-sentiment {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #90ee90;
+    }
+
+    #emoji-meter {
+      text-align: center;
+      font-size: 32px;
+      margin-top: 10px;
+    }
+
+    #loader-container {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      height: 150px;
+      margin-top: 40px;
+    }
+
+    .loader {
+      width: 50px;
+      height: 50px;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: rotateCube 1.5s infinite linear;
+      margin: 0 auto;
+    }
+
+    .loader::before,
+    .loader::after {
+      content: '';
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(45deg, #00ff88, #0f9d58);
+      border-radius: 10%;
+      opacity: 0.8;
+      animation: pulse 1s infinite alternate;
+    }
+
+    .loader::before { transform: rotateX(90deg); }
+    .loader::after { transform: rotateY(90deg); }
+
+    @keyframes rotateCube {
+      0% { transform: rotateX(0) rotateY(0); }
+      100% { transform: rotateX(360deg) rotateY(360deg); }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .upload-section {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    #imageInput {
+      margin-top: 10px;
+      background-color: var(--upload-button-bg);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #imageInput:hover {
+      background-color: var(--upload-button-hover-bg);
+    }
+
+    .toggle-mode {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      cursor: pointer;
+      background-color: #333;
+      color: white;
+      border-radius: 10px;
+      padding: 8px 16px;
+      border: none;
+      font-size: 14px;
+    }
+
+    .toggle-mode:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle-mode" onclick="toggleMode()">Toggle Mode</button>
+  <h1>🚀 Stock Bot</h1>
+
+  <div id="search-bar">
+    <input type="text" id="symbol" placeholder="Enter Stock Name or Symbol" />
+    <button class="go-button" onclick="getStockData()">Go</button>
+    <button class="speech-button" onclick="startListening()">🎤</button>
+  </div>
+
+  <div class="info-box">
+    💡 Tip: Enter partial stock names like "goog" or "reli" and get smart suggestions!
+  </div>
+
+  <div class="upload-section">
+    <label for="imageInput">Upload Chart Image:</label>
+    <input type="file" id="imageInput" accept="image/*" onchange="uploadImage()" />
+  </div>
+
+  <div id="emoji-meter"></div>
+  <div class="container" id="output"></div>
+
+  <div id="loader-container">
+    <div class="loader"></div>
+  </div>
+
+  <div style="margin-top: 20px; display: none;" id="search-again-container">
+    <button class="go-button" style="background-color: #2196F3;" onclick="searchAnother()">🔁 Search Another Stock</button>
+  </div>
+
+  <script>
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+
+    function startListening() {
+      recognition.start();
+    }
+
+    recognition.onresult = function (event) {
+      const transcript = event.results[0][0].transcript;
+      document.getElementById("symbol").value = transcript;
+      getStockData();
+    };
+
+    async function getStockData() {
+      const symbol = document.getElementById("symbol").value.trim();
+      if (!symbol) return alert("Please enter a stock name or symbol.");
+
+      document.getElementById("loader-container").style.display = "flex";
+      document.getElementById("output").innerHTML = "";
+      document.getElementById("search-again-container").style.display = "none";
+
+      const res = await fetch("/get_data", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol })
+      });
+
+      document.getElementById("loader-container").style.display = "none";
+      document.getElementById("symbol").value = "";
+      const data = await res.json();
+      if (data.error) return alert(data.error);
+
+      const moodEmoji = data.overall_sentiment === "Positive" ? "😊" :
+                        data.overall_sentiment === "Negative" ? "😢" : "😐";
+      document.getElementById("emoji-meter").innerText = `Mood: ${moodEmoji}`;
+
+      let html = `<div class="card"><h2>${data.name}</h2>
+                  <p>Price: ${data.price} (${data.change}, ${data.percent})</p>
+                  <p>🕒 Queried at: ${new Date().toLocaleTimeString()}</p>
+                  ${data.suggestion ? `<p style="color:#ccc">${data.suggestion}</p>` : ""}</div>`;
+
+      html += `<img src="${data.chart}" class="chart-img" alt="Chart" />`;
+
+      data.news.forEach(n => {
+        html += `<div class="card">
+                  <p>${n.text}</p>
+                  <div class="news-sentiment">${n.sentiment} 
+                  <button onclick="copyToClipboard('${n.sentiment}')">📋</button></div>
+                </div>`;
+      });
+
+      document.getElementById("output").innerHTML = html;
+      document.getElementById("search-again-container").style.display = "block";
+    }
+
+    function uploadImage() {
+      const file = document.getElementById("imageInput").files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("image", file);
+      document.getElementById("loader-container").style.display = "flex";
+
+      fetch("/upload", {
+        method: "POST",
+        body: formData
+      }).then(res => res.json()).then(data => {
+        document.getElementById("loader-container").style.display = "none";
+        if (data.error) return alert(data.error);
+        document.getElementById("output").innerHTML = `<div class="card"><p>${data.result}</p></div>`;
+        document.getElementById("emoji-meter").innerText = "";
+        document.getElementById("search-again-container").style.display = "block";
+      });
+    }
+
+    function toggleMode() {
+      document.body.classList.toggle("light-mode");
+    }
+
+    function searchAnother() {
+      document.getElementById("symbol").value = "";
+      document.getElementById("output").innerHTML = "";
+      document.getElementById("emoji-meter").innerText = "";
+      document.getElementById("search-again-container").style.display = "none";
+      document.getElementById("symbol").focus();
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => alert("Copied!"));
+    }
+
+    document.getElementById("symbol").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") getStockData();
+    });
+  </script>
+</body>
+</html>
